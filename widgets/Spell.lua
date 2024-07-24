@@ -4,7 +4,7 @@ if not StdUi then
 	return
 end
 
-local module, version = 'Spell', 2;
+local module, version = 'Spell', 3;
 if not StdUi:UpgradeNeeded(module, version) then
 	return
 end
