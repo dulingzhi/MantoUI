@@ -4,7 +4,7 @@ if not StdUi then
 	return
 end
 
-local module, version = 'Position', 2;
+local module, version = 'Position', 3;
 if not StdUi:UpgradeNeeded(module, version) then return end;
 
 -- Points
@@ -117,8 +117,9 @@ function StdUi:GlueAcross(object, referencedObject, topLeftX, topLeftY, bottomRi
 end
 
 -- Glues object to opposite side of anchor
-function StdUi:GlueOpposite(object, referencedObject, x, y, anchor)
-	if anchor == 'TOP' then 			object:SetPoint('BOTTOM', referencedObject, anchor, x, y);
+function StdUi:GlueOpposite(object, referencedObject, x, y, anchor, relativeAnchor)
+	if relativeAnchor then 				object:SetPoint(anchor, referencedObject, relativeAnchor, x, y);
+	elseif anchor == 'TOP' then 		object:SetPoint('BOTTOM', referencedObject, anchor, x, y);
 	elseif anchor == 'BOTTOM' then		object:SetPoint('TOP', referencedObject, anchor, x, y);
 	elseif anchor == 'LEFT' then		object:SetPoint('RIGHT', referencedObject, anchor, x, y);
 	elseif anchor == 'RIGHT' then		object:SetPoint('LEFT', referencedObject, anchor, x, y);

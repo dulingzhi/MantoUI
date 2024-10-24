@@ -4,7 +4,7 @@ if not StdUi then
 	return
 end
 
-local module, version = 'ContextMenu', 4;
+local module, version = 'ContextMenu', 5;
 if not StdUi:UpgradeNeeded(module, version) then
 	return
 end
@@ -31,6 +31,10 @@ local ContextMenuItemOnMouseUp = function(itemFrame, button)
 	end
 end
 
+local function ContextMenuItemOnEnterStopCounter(itemFrame)
+	itemFrame.mainContext:StopHideCounter();
+end
+
 --- ContextMenuEvents
 
 local ContextMenuOnMouseUp = function(self, button)
@@ -51,6 +55,8 @@ local ContextMenuOnMouseUp = function(self, button)
 		end
 	end
 end
+
+local ContextMenuId = 0
 
 ---@type ContextMenu
 StdUi.ContextMenuMethods = {
@@ -74,7 +80,7 @@ StdUi.ContextMenuMethods = {
 		if parent then
 			-- ContextMenuOnMouseUp requires a reference to this menu (self)
 			local menu = self -- don't trust magic variable names
-			parent:HookScript('OnMouseUp', function (_, button) ContextMenuOnMouseUp(menu, button) end);
+			parent:HookScript('OnMouseUp', function(_, button) ContextMenuOnMouseUp(menu, button) end);
 		end
 	end,
 
@@ -148,6 +154,8 @@ StdUi.ContextMenuMethods = {
 			end
 		end
 
+		itemFrame:HookScript('OnEnter', ContextMenuItemOnEnterStopCounter);
+
 		return itemFrame;
 	end,
 
@@ -210,29 +218,59 @@ StdUi.ContextMenuMethods = {
 		if self.timer then
 			self.timer:Cancel();
 		end
-		self.timer = C_Timer.NewTimer(3, self.TimerCallback);
+		self.timer = C_Timer.NewTimer(2, function()
+			self:TimerCallback()
+		end);
 	end,
 
-	StopHideCounter   = function()
+	StopHideCounter   = function(self)
+		if self.timer then
+			self.timer:Cancel();
+		end
+	end,
 
+	Toggle            = function(self, offsetX, offsetY)
+		if self:IsShown() then
+			self:Hide()
+		else
+			self:ClearAllPoints()
+			if self:GetParent():GetBottom() < self:GetHeight() then
+				StdUi:GlueOpposite(self, self:GetParent(), offsetX or 0, offsetY or 0, 'BOTTOMLEFT', 'TOPLEFT')
+			else
+				StdUi:GlueOpposite(self, self:GetParent(), offsetX or 0, offsetY or 0, 'TOPLEFT', 'BOTTOMLEFT')
+			end
+			self:Show()
+		end
+	end,
+
+	TimerCallback     = function(self)
+		self:Hide()
+		if self.parentContext then
+			self.parentContext:TimerCallback()
+		end
 	end
 };
 
 StdUi.ContextMenuEvents = {
 	OnEnter = function(self)
-
+		self:StopHideCounter()
 	end,
 	OnLeave = function(self)
-
+		self:StartHideCounter()
+	end,
+	OnHide = function(self)
+		self:StopHideCounter()
 	end
 };
 
 function StdUi:ContextMenu(parent, options, stopHook, level)
+	ContextMenuId = ContextMenuId + 1;
 	---@class ContextMenu
-	local panel = self:Panel(parent);
+	local panel = self:Panel(parent, nil, nil, nil, 'StdUiContextMenu' .. ContextMenuId);
 	panel.stdUi = self;
 	panel.level = level or 1;
 	panel.padding = 16;
+	table.insert(UIMenus, panel:GetName());
 
 	panel:SetFrameStrata('FULLSCREEN_DIALOG');
 

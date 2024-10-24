@@ -4,19 +4,19 @@ if not StdUi then
 	return
 end
 
-local module, version = 'Basic', 4;
+local module, version = 'Basic', 5;
 if not StdUi:UpgradeNeeded(module, version) then return end;
 
-function StdUi:Frame(parent, width, height, inherits)
-	local frame = CreateFrame('Frame', nil, parent, inherits);
+function StdUi:Frame(parent, width, height, inherits, name)
+	local frame = CreateFrame('Frame', name, parent, inherits);
 	self:InitWidget(frame);
 	self:SetObjSize(frame, width, height);
 
 	return frame;
 end
 
-function StdUi:Panel(parent, width, height, inherits)
-	local frame = self:Frame(parent, width, height, inherits);
+function StdUi:Panel(parent, width, height, inherits, name)
+	local frame = self:Frame(parent, width, height, inherits, name);
 	self:ApplyBackdrop(frame, 'panel');
 
 	return frame;
